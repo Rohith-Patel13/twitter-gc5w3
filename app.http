@@ -8,3 +8,31 @@ Content-Type: application/json
   "name": "Adam Richard",
   "gender": "male"
 }
+
+### API 2 POST
+POST http://localhost:3001/login/
+Content-Type: application/json
+
+{
+  "username":"JoeBiden",
+  "password":"biden@123"
+}
+
+### API 3 GET
+GET http://localhost:3001/user/tweets/feed/?username=JoeBiden
+Authorization:Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjkxODE1OTU3fQ.7vevN_2IcUOuX3QnhKjiN5FEDDB8zSZw9kqF5cSjpXI
+
+### API 3 GET =>without sending Authorization in headers
+GET http://localhost:3001/user/tweets/feed/
+
+### API 3 GET =>without sending token in Authorization
+GET http://localhost:3001/user/tweets/feed/
+Authorization:Bearer
+
+### API 3 GET =>without sending incorrect token in Authorization
+GET http://localhost:3001/user/tweets/feed/
+Authorization:Bearer pr-0VY1GVd5EpndR7ua3Ta1H7nrDOzZi
+
+### API 4 GET
+GET http://localhost:3001/user/following/?username=JoeBiden
+Authorization:Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwiaWF0IjoxNjkxODE1OTU3fQ.7vevN_2IcUOuX3QnhKjiN5FEDDB8zSZw9kqF5cSjpXI
