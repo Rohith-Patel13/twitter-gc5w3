@@ -124,10 +124,11 @@ const authenticateJwtToken = (requestObject, responseObject, next) => {
         responseObject.status(401);
         responseObject.send("Invalid JWT Token");
       } else {
-        /*
         console.log(payload);
-        { username: 'JoeBiden', iat: 1691733591 }
-        */
+        /*
+console.log(payload);
+{ username: 'JoeBiden', iat: 1691818917 }
+*/
         next();
       }
     });
@@ -147,7 +148,7 @@ app.get(
     const tweetQuery = `SELECT u2.username AS username,tweet,date_time AS dateTime
     FROM user AS u1 INNER JOIN follower as f ON f.follower_user_id=u1.user_id INNER JOIN 
     user AS u2 ON u2.user_id=f.following_user_id INNER JOIN tweet ON tweet.user_id=u2.user_id 
-    WHERE u1.username='${username}' ORDER BY dateTime DESC LIMIT 4;`;
+    WHERE u1.username='${username}' ORDER BY dateTime DESC LIMIT ${4} OFFSET ${0};`;
     const dbResponse = await dbConnectionObject.all(tweetQuery);
     const dbResponseResult = dbResponse.map((eachObject) => ({
       username: eachObject.username,
@@ -165,7 +166,6 @@ app.get(
   authenticateJwtToken,
   async (requestObject, responseObject) => {
     const requestQuery = requestObject.query;
-
     const { username } = requestQuery;
     const tweetQuery = `SELECT distinct(u2.name) AS name
     FROM user AS u1 INNER JOIN follower as f ON f.follower_user_id=u1.user_id INNER JOIN 
@@ -175,8 +175,35 @@ app.get(
     const dbResponseResult = dbResponse.map((eachObject) => ({
       name: eachObject.name,
     }));
-
     responseObject.send(dbResponseResult);
+  }
+);
+
+//section5 API 5:
+app.get(
+  "/user/followers/",
+  authenticateJwtToken,
+  async (requestObject, responseObject) => {
+    const requestQuery = requestObject.query;
+    const { username } = requestQuery;
+    const tweetQuery = `SELECT u2.name AS name FROM user AS u1  INNER JOIN follower
+    AS f1 ON u1.user_id=f1.following_user_id INNER JOIN user AS u2 
+    ON u2.user_id=f1.follower_user_id WHERE u1.username='${username}';`;
+    const dbResponse = await dbConnectionObject.all(tweetQuery);
+    const dbResponseResult = dbResponse.map((eachObject) => ({
+      name: eachObject.name,
+    }));
+    responseObject.send(dbResponseResult);
+  }
+);
+
+//section6 API 6:
+app.get(
+  "/tweets/:tweetId/",
+  authenticateJwtToken,
+  async (requestObject, responseObject) => {
+    const requestQuery = requestObject.query;
+    const { username } = requestQuery;
   }
 );
 
