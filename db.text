@@ -35,7 +35,7 @@ CREATE TABLE like (
             date_time   DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(user_id) REFERENCES user(user_id) ON DELETE CASCADE,
             FOREIGN KEY(tweet_id) REFERENCES tweet(tweet_id) ON DELETE CASCADE
-          );
+          )
 
 sqlite> .tables
 follower  like      reply     tweet     user    
@@ -60,6 +60,14 @@ sqlite> SELECT * FROM follower;
 10|4|5
 11|5|1
 12|5|3
+
+CREATE TABLE tweet (
+            tweet_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            tweet TEXT,
+            user_id INT,
+            date_time   DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES user(user_id) ON DELETE CASCADE
+          );
 sqlite> SELECT * FROM tweet;
 1|Looking forward to a unique interaction with youngsters, their parents and teachers.|1|2021-04-07 14:50:15
 2|On the way to the rally in Kanyakumari, caught a glimpse of the majestic Vivekananda Rock Memorial and the grand Thiruvalluvar Statue.|1|2021-04-07 14:50:15
@@ -139,7 +147,7 @@ sqlite> SELECT * FROM like;
 sqlite> 
 
 
-
+sqlite3 twitterClone.db
 
 
 

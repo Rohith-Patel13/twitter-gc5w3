@@ -1,0 +1,153 @@
+CREATE TABLE user (
+            user_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            username TEXT,
+            password TEXT,
+            gender TEXT
+          );
+CREATE TABLE follower (
+            follower_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            follower_user_id INT,
+            following_user_id   INT,
+            FOREIGN KEY(follower_user_id) REFERENCES user(user_id) ON DELETE CASCADE,
+            FOREIGN KEY(following_user_id) REFERENCES user(user_id) ON DELETE CASCADE
+          );
+CREATE TABLE tweet (
+            tweet_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            tweet TEXT,
+            user_id     INT,
+            date_time   DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES user(user_id) ON DELETE CASCADE
+          );
+CREATE TABLE reply (
+            reply_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            tweet_id INT,
+            reply       TEXT,
+            user_id INT
+            date_time   DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES user(user_id) ON DELETE CASCADE,
+            FOREIGN KEY(tweet_id) REFERENCES tweet(tweet_id) ON DELETE CASCADE
+          );
+CREATE TABLE like (
+            like_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            tweet_id INT,
+            user_id INT
+            date_time   DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES user(user_id) ON DELETE CASCADE,
+            FOREIGN KEY(tweet_id) REFERENCES tweet(tweet_id) ON DELETE CASCADE
+          );
+
+
+
+
+
+
+CORRECT:
+
+
+sqlite> SELECT t.tweet AS tweet,COUNT(l.like_id) AS likes,COUNT(r.reply_id) AS replies,t.date_time AS dateTime FROM tweet t LEFT JOIN like l ON t.tweet_id = l.tweet_id LEFT JOIN reply r ON t.tweet_id = r.tweet_id JOIN user u ON t.user_id = u.user_id WHERE u.username = 'JoeBiden' GROUP BY t.tweet_id ORDER BY t.date_time DESC;
+My Administration is working to get America vaccinated as quickly as possible. Tune in as I provide an update on our progress and the timeline moving forward.|4|4|2021-04-07 14:50:15
+The American Jobs Plan is the largest American jobs investment since World War II.|6|6|2021-04-07 14:50:15
+sqlite> 
+
+
+sqlite> SELECT t.tweet AS tweet,COUNT(DISTINCT(l.like_id)) AS likes,COUNT(DISTINCT(r.reply_id)) AS replies,t.date_time AS dateTime FROM tweet t LEFT JOIN like l ON t.tweet_id = l.tweet_id LEFT JOIN reply r ON t.tweet_id = r.tweet_id JOIN user u ON t.user_id = u.user_id WHERE u.username = 'JoeBiden' GROUP BY t.tweet_id ORDER BY t.date_time DESC;
+My Administration is working to get America vaccinated as quickly as possible. Tune in as I provide an update on our progress and the timeline moving forward.|2|2|2021-04-07 14:50:15
+The American Jobs Plan is the largest American jobs investment since World War II.|3|2|2021-04-07 14:50:15
+sqlite>
+
+
+step 1:
+sqlite> SELECT t.tweet_id,t.tweet,t.user_id,t.date_time,l.like_id,l.tweet_id,l.user_id FROM tweet AS t LEFT JOIN like AS l ON t.tweet_id=l.tweet_id;
+1|Looking forward to a unique interaction with youngsters, their parents and teachers.|1|2021-04-07 14:50:15|1|1|2
+1|Looking forward to a unique interaction with youngsters, their parents and teachers.|1|2021-04-07 14:50:15|3|1|4
+1|Looking forward to a unique interaction with youngsters, their parents and teachers.|1|2021-04-07 14:50:15|2|1|5
+2|On the way to the rally in Kanyakumari, caught a glimpse of the majestic Vivekananda Rock Memorial and the grand Thiruvalluvar Statue.|1|2021-04-07 14:50:15|6|2|1
+2|On the way to the rally in Kanyakumari, caught a glimpse of the majestic Vivekananda Rock Memorial and the grand Thiruvalluvar Statue.|1|2021-04-07 14:50:15|4|2|2
+2|On the way to the rally in Kanyakumari, caught a glimpse of the majestic Vivekananda Rock Memorial and the grand Thiruvalluvar Statue.|1|2021-04-07 14:50:15|5|2|5
+3|My Administration is working to get America vaccinated as quickly as possible. Tune in as I provide an update on our progress and the timeline moving forward.|2|2021-04-07 14:50:15|7|3|1
+3|My Administration is working to get America vaccinated as quickly as possible. Tune in as I provide an update on our progress and the timeline moving forward.|2|2021-04-07 14:50:15|8|3|4
+4|The American Jobs Plan is the largest American jobs investment since World War II.|2|2021-04-07 14:50:15|9|4|1
+4|The American Jobs Plan is the largest American jobs investment since World War II.|2|2021-04-07 14:50:15|11|4|3
+4|The American Jobs Plan is the largest American jobs investment since World War II.|2|2021-04-07 14:50:15|10|4|4
+5|Greatness is knowing you can go further, no matter how far you have come.|3|2021-04-07 14:50:15|12|5|4
+5|Greatness is knowing you can go further, no matter how far you have come.|3|2021-04-07 14:50:15|13|5|5
+6|Victory is temporary, but joy is eternal. Grateful for all of the joyful moments, big and small.|3|2021-04-07 14:50:15|14|6|1
+6|Victory is temporary, but joy is eternal. Grateful for all of the joyful moments, big and small.|3|2021-04-07 14:50:15|15|6|5
+7|Oel ngati kameie, China! We are re excited to bring Avatar back to your big screens this weekend.|4|2021-04-07 14:50:15|16|7|1
+7|Oel ngati kameie, China! We are re excited to bring Avatar back to your big screens this weekend.|4|2021-04-07 14:50:15|17|7|2
+8|Oel ngati kameie, Avatar fans.|4|2021-04-07 14:50:15|19|8|1
+8|Oel ngati kameie, Avatar fans.|4|2021-04-07 14:50:15|18|8|2
+8|Oel ngati kameie, Avatar fans.|4|2021-04-07 14:50:15|20|8|4
+9|T 3860 - happiness is nothing more than good health and a bad memory ..|5|2021-04-07 14:50:15|21|9|3
+9|T 3860 - happiness is nothing more than good health and a bad memory ..|5|2021-04-07 14:50:15|22|9|5
+10|T 3859 - do something wonderful, people may imitate it ..|5|2021-04-07 14:50:19|24|10|3
+10|T 3859 - do something wonderful, people may imitate it ..|5|2021-04-07 14:50:19|25|10|4
+10|T 3859 - do something wonderful, people may imitate it ..|5|2021-04-07 14:50:19|23|10|5
+11|I found myself thinking back to my own early youth, to the first shock of my encounter|6|2021-04-07 18:05:36|||
+sqlite> 
+
+
+step 2:
+sqlite>  SELECT t.tweet_id,t.tweet,t.user_id,t.date_time,l.like_id,l.tweet_id,l.user_id,r.reply_id,r.tweet_id,r.reply,r.user_id FROM tweet AS t LEFT JOIN like AS l ON t.tweet_id=l.tweet_id LEFT JOIN reply AS r ON r.tweet_id=t.tweet_id;
+1|Looking forward to a unique interaction with youngsters, their parents and teachers.|1|2021-04-07 14:50:15|1|1|2|3|1|Ready to don the Blue and Gold|1
+1|Looking forward to a unique interaction with youngsters, their parents and teachers.|1|2021-04-07 14:50:15|1|1|2|1|1|We are together not just because we are a part of the same team|1
+1|Looking forward to a unique interaction with youngsters, their parents and teachers.|1|2021-04-07 14:50:15|1|1|2|2|1|We know whom to call when we need a few extra runs!|1
+1|Looking forward to a unique interaction with youngsters, their parents and teachers.|1|2021-04-07 14:50:15|3|1|4|3|1|Ready to don the Blue and Gold|1
+1|Looking forward to a unique interaction with youngsters, their parents and teachers.|1|2021-04-07 14:50:15|3|1|4|1|1|We are together not just because we are a part of the same team|1
+1|Looking forward to a unique interaction with youngsters, their parents and teachers.|1|2021-04-07 14:50:15|3|1|4|2|1|We know whom to call when we need a few extra runs!|1
+1|Looking forward to a unique interaction with youngsters, their parents and teachers.|1|2021-04-07 14:50:15|2|1|5|3|1|Ready to don the Blue and Gold|1
+1|Looking forward to a unique interaction with youngsters, their parents and teachers.|1|2021-04-07 14:50:15|2|1|5|1|1|We are together not just because we are a part of the same team|1
+1|Looking forward to a unique interaction with youngsters, their parents and teachers.|1|2021-04-07 14:50:15|2|1|5|2|1|We know whom to call when we need a few extra runs!|1
+2|On the way to the rally in Kanyakumari, caught a glimpse of the majestic Vivekananda Rock Memorial and the grand Thiruvalluvar Statue.|1|2021-04-07 14:50:15|6|2|1|5|2|A lot of people make the mistake of just hopping around on jobs a whole lot...|2
+2|On the way to the rally in Kanyakumari, caught a glimpse of the majestic Vivekananda Rock Memorial and the grand Thiruvalluvar Statue.|1|2021-04-07 14:50:15|6|2|1|4|2|When you see it..|1
+2|On the way to the rally in Kanyakumari, caught a glimpse of the majestic Vivekananda Rock Memorial and the grand Thiruvalluvar Statue.|1|2021-04-07 14:50:15|4|2|2|5|2|A lot of people make the mistake of just hopping around on jobs a whole lot...|2
+2|On the way to the rally in Kanyakumari, caught a glimpse of the majestic Vivekananda Rock Memorial and the grand Thiruvalluvar Statue.|1|2021-04-07 14:50:15|4|2|2|4|2|When you see it..|1
+2|On the way to the rally in Kanyakumari, caught a glimpse of the majestic Vivekananda Rock Memorial and the grand Thiruvalluvar Statue.|1|2021-04-07 14:50:15|5|2|5|5|2|A lot of people make the mistake of just hopping around on jobs a whole lot...|2
+2|On the way to the rally in Kanyakumari, caught a glimpse of the majestic Vivekananda Rock Memorial and the grand Thiruvalluvar Statue.|1|2021-04-07 14:50:15|5|2|5|4|2|When you see it..|1
+3|My Administration is working to get America vaccinated as quickly as possible. Tune in as I provide an update on our progress and the timeline moving forward.|2|2021-04-07 14:50:15|7|3|1|7|3|Proud to say i haveve donated to this and you should too!|3
+3|My Administration is working to get America vaccinated as quickly as possible. Tune in as I provide an update on our progress and the timeline moving forward.|2|2021-04-07 14:50:15|7|3|1|6|3|This is the secret to getting good at a new skill: consistency. Proud of my man Rich and his dedication to learning German.|2
+3|My Administration is working to get America vaccinated as quickly as possible. Tune in as I provide an update on our progress and the timeline moving forward.|2|2021-04-07 14:50:15|8|3|4|7|3|Proud to say i haveve donated to this and you should too!|3
+3|My Administration is working to get America vaccinated as quickly as possible. Tune in as I provide an update on our progress and the timeline moving forward.|2|2021-04-07 14:50:15|8|3|4|6|3|This is the secret to getting good at a new skill: consistency. Proud of my man Rich and his dedication to learning German.|2
+4|The American Jobs Plan is the largest American jobs investment since World War II.|2|2021-04-07 14:50:15|9|4|1|8|4|If you are reading this and you started, are in the middle of, or have finished |3
+4|The American Jobs Plan is the largest American jobs investment since World War II.|2|2021-04-07 14:50:15|9|4|1|9|4|Missed out on the series? Visit the link below and stream the series on-demand, and at your convenience.|3
+4|The American Jobs Plan is the largest American jobs investment since World War II.|2|2021-04-07 14:50:15|11|4|3|8|4|If you are reading this and you started, are in the middle of, or have finished |3
+4|The American Jobs Plan is the largest American jobs investment since World War II.|2|2021-04-07 14:50:15|11|4|3|9|4|Missed out on the series? Visit the link below and stream the series on-demand, and at your convenience.|3
+4|The American Jobs Plan is the largest American jobs investment since World War II.|2|2021-04-07 14:50:15|10|4|4|8|4|If you are reading this and you started, are in the middle of, or have finished |3
+4|The American Jobs Plan is the largest American jobs investment since World War II.|2|2021-04-07 14:50:15|10|4|4|9|4|Missed out on the series? Visit the link below and stream the series on-demand, and at your convenience.|3
+5|Greatness is knowing you can go further, no matter how far you have come.|3|2021-04-07 14:50:15|12|5|4|10|5|Register and join us for educational sessions, tech panels, and the latest on MongoDB.|3
+5|Greatness is knowing you can go further, no matter how far you have come.|3|2021-04-07 14:50:15|13|5|5|10|5|Register and join us for educational sessions, tech panels, and the latest on MongoDB.|3
+6|Victory is temporary, but joy is eternal. Grateful for all of the joyful moments, big and small.|3|2021-04-07 14:50:15|14|6|1|11|6|Always having our back!|4
+6|Victory is temporary, but joy is eternal. Grateful for all of the joyful moments, big and small.|3|2021-04-07 14:50:15|15|6|5|11|6|Always having our back!|4
+7|Oel ngati kameie, China! We are re excited to bring Avatar back to your big screens this weekend.|4|2021-04-07 14:50:15|16|7|1|12|7|A strong display with bat and ball and we have won the series with a game to play!|4
+7|Oel ngati kameie, China! We are re excited to bring Avatar back to your big screens this weekend.|4|2021-04-07 14:50:15|17|7|2|12|7|A strong display with bat and ball and we have won the series with a game to play!|4
+8|Oel ngati kameie, Avatar fans.|4|2021-04-07 14:50:15|19|8|1|13|8|I am busy gathering information on the 12 crore jobs|4
+8|Oel ngati kameie, Avatar fans.|4|2021-04-07 14:50:15|18|8|2|13|8|I am busy gathering information on the 12 crore jobs|4
+8|Oel ngati kameie, Avatar fans.|4|2021-04-07 14:50:15|20|8|4|13|8|I am busy gathering information on the 12 crore jobs|4
+9|T 3860 - happiness is nothing more than good health and a bad memory ..|5|2021-04-07 14:50:15|21|9|3|14|9|This little girl challenges age old gender discrimination ingrained in our lives|5
+9|T 3860 - happiness is nothing more than good health and a bad memory ..|5|2021-04-07 14:50:15|22|9|5|14|9|This little girl challenges age old gender discrimination ingrained in our lives|5
+10|T 3859 - do something wonderful, people may imitate it ..|5|2021-04-07 14:50:19|24|10|3|15|10|if you had a twitter before 2020 rt this|5
+10|T 3859 - do something wonderful, people may imitate it ..|5|2021-04-07 14:50:19|25|10|4|15|10|if you had a twitter before 2020 rt this|5
+10|T 3859 - do something wonderful, people may imitate it ..|5|2021-04-07 14:50:19|23|10|5|15|10|if you had a twitter before 2020 rt this|5
+11|I found myself thinking back to my own early youth, to the first shock of my encounter|6|2021-04-07 18:05:36|||||||
+sqlite> 
+
+step 3:
+sqlite> SELECT t.tweet_id,t.tweet,t.user_id,t.date_time,l.like_id,l.tweet_id,l.user_id,r.reply_id,r.tweet_id,r.reply,r.user_id,u.user_id,u.username FROM tweet AS t LEFT JOIN like AS l ON t.tweet_id=l.tweet_id LEFT JOIN reply AS r ON r.tweet_id=t.tweet_id JOIN user AS u ON t.user_id=u.user_id WHERE u.username="JoeBiden";
+3|My Administration is working to get America vaccinated as quickly as possible. Tune in as I provide an update on our progress and the timeline moving forward.|2|2021-04-07 14:50:15|7|3|1|7|3|Proud to say i haveve donated to this and you should too!|3|2|JoeBiden
+3|My Administration is working to get America vaccinated as quickly as possible. Tune in as I provide an update on our progress and the timeline moving forward.|2|2021-04-07 14:50:15|7|3|1|6|3|This is the secret to getting good at a new skill: consistency. Proud of my man Rich and his dedication to learning German.|2|2|JoeBiden
+3|My Administration is working to get America vaccinated as quickly as possible. Tune in as I provide an update on our progress and the timeline moving forward.|2|2021-04-07 14:50:15|8|3|4|7|3|Proud to say i haveve donated to this and you should too!|3|2|JoeBiden
+3|My Administration is working to get America vaccinated as quickly as possible. Tune in as I provide an update on our progress and the timeline moving forward.|2|2021-04-07 14:50:15|8|3|4|6|3|This is the secret to getting good at a new skill: consistency. Proud of my man Rich and his dedication to learning German.|2|2|JoeBiden
+4|The American Jobs Plan is the largest American jobs investment since World War II.|2|2021-04-07 14:50:15|9|4|1|8|4|If you are reading this and you started, are in the middle of, or have finished |3|2|JoeBiden
+4|The American Jobs Plan is the largest American jobs investment since World War II.|2|2021-04-07 14:50:15|9|4|1|9|4|Missed out on the series? Visit the link below and stream the series on-demand, and at your convenience.|3|2|JoeBiden
+4|The American Jobs Plan is the largest American jobs investment since World War II.|2|2021-04-07 14:50:15|11|4|3|8|4|If you are reading this and you started, are in the middle of, or have finished |3|2|JoeBiden
+4|The American Jobs Plan is the largest American jobs investment since World War II.|2|2021-04-07 14:50:15|11|4|3|9|4|Missed out on the series? Visit the link below and stream the series on-demand, and at your convenience.|3|2|JoeBiden
+4|The American Jobs Plan is the largest American jobs investment since World War II.|2|2021-04-07 14:50:15|10|4|4|8|4|If you are reading this and you started, are in the middle of, or have finished |3|2|JoeBiden
+4|The American Jobs Plan is the largest American jobs investment since World War II.|2|2021-04-07 14:50:15|10|4|4|9|4|Missed out on the series? Visit the link below and stream the series on-demand, and at your convenience.|3|2|JoeBiden
+sqlite> 
+
+step 4:
+sqlite> SELECT t.tweet AS tweet,COUNT(DISTINCT(l.like_id)),COUNT(DISTINCT(r.reply_id)),t.date_time AS dateTime FROM tweet AS t LEFT JOIN like AS l ON t.tweet_id=l.tweet_id LEFT JOIN reply AS r ON r.tweet_id=t.tweet_id JOIN user AS u ON t.user_id=u.user_id WHERE u.username="JoeBiden" GROUP BY t.tweet_id;
+My Administration is working to get America vaccinated as quickly as possible. Tune in as I provide an update on our progress and the timeline moving forward.|2|2|2021-04-07 14:50:15
+The American Jobs Plan is the largest American jobs investment since World War II.|3|2|2021-04-07 14:50:15
+sqlite> 
