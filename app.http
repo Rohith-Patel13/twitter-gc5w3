@@ -50,7 +50,7 @@ GET http://localhost:3001/tweets/2/likes/
 Authorization:Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwibmFtZSI6IkpvZSBCaWRlbiIsInVzZXJfaWQiOjIsImlhdCI6MTY5MjAyMDg5MH0.x0L9Q2FzGUMpXhe9Mu6_lDjOq5FHPkV4cnXHzKtNDbI
 
 ### API 8 GET
-GET http://localhost:3001/tweets/7/replies/
+GET http://localhost:3001/tweets/1/replies/
 Authorization:Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvZUJpZGVuIiwibmFtZSI6IkpvZSBCaWRlbiIsInVzZXJfaWQiOjIsImlhdCI6MTY5MjAyMDg5MH0.x0L9Q2FzGUMpXhe9Mu6_lDjOq5FHPkV4cnXHzKtNDbI
 
 ### API 9 GET

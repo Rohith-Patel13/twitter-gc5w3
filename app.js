@@ -318,53 +318,56 @@ app.get(
 );
 
 //section8 API 8:
+//section8 API 8:
 app.get(
   "/tweets/:tweetId/replies/",
   authenticateJwtToken,
   async (requestObject, responseObject) => {
-    //const requestQuery = requestObject.query;
-    //const { name } = requestQuery;
-    const { username, name } = requestObject;
-
-    console.log(name);
+    const { user_id } = requestObject; // Get the authenticated user's user_id
     const requestParams = requestObject.params;
     const { tweetId } = requestParams;
-    console.log(tweetId); //string
-    const tweetQuery = `SELECT tweet.tweet_id AS tweet_id_user_following
-    FROM user AS u1 INNER JOIN follower as f ON f.follower_user_id=u1.user_id INNER JOIN 
-    user AS u2 ON u2.user_id=f.following_user_id INNER JOIN tweet ON tweet.user_id=u2.user_id 
-    WHERE u1.name='${name}';`;
-    const dbResponse1 = await dbConnectionObject.all(tweetQuery);
-    /*
-    if username=JoeBiden
-    [
-    {"tweet_id_user_following":1},
-    {"tweet_id_user_following":2},
-    {"tweet_id_user_following":7},
-    {"tweet_id_user_following":8}
-     ]
-    */
 
-    const tweet_id_user_followingArray = dbResponse1.map((eachObject) => {
-      return eachObject.tweet_id_user_following;
-    });
-    console.log(tweet_id_user_followingArray); //[ 1, 2, 7, 8 ] if username=JoeBiden
+    // Check if the authenticated user is following the author of the tweet
+    const followingQuery = `
+      SELECT t.user_id
+      FROM tweet AS t
+      JOIN user AS u ON t.user_id = u.user_id
+      WHERE t.tweet_id = ${tweetId};
+    `;
 
-    if (!tweet_id_user_followingArray.includes(parseInt(tweetId))) {
-      responseObject.status(401);
+    const dbResponse = await dbConnectionObject.get(followingQuery);
+
+    if (!dbResponse) {
+      responseObject.status(404);
       responseObject.send("Invalid Request");
     } else {
-      const query = `SELECT DISTINCT u1.name AS name,r.reply AS reply FROM 
-    tweet AS t LEFT JOIN like AS l ON t.tweet_id = l.tweet_id LEFT JOIN 
-    reply AS r ON t.tweet_id = r.tweet_id LEFT JOIN user AS u1 ON u1.user_id=r.user_id 
-    WHERE t.tweet_id = ${tweetId};`;
-      const dbResponse = await dbConnectionObject.all(query);
-      console.log(dbResponse);
-      const dbResponseResult = {
-        replies: dbResponse,
-      };
-      console.log(dbResponseResult);
-      responseObject.send(dbResponseResult);
+      const tweetUserId = dbResponse.user_id;
+
+      const isFollowingQuery = `
+        SELECT * FROM follower
+        WHERE follower_user_id = ${user_id}
+        AND following_user_id = ${tweetUserId};
+      `;
+
+      const followingResponse = await dbConnectionObject.get(isFollowingQuery);
+
+      if (!followingResponse) {
+        responseObject.status(401);
+        responseObject.send("Invalid Request");
+      } else {
+        const query = `
+          SELECT u1.name AS name, r.reply AS reply
+          FROM reply AS r
+          JOIN user AS u1 ON r.user_id = u1.user_id
+          WHERE r.tweet_id = ${tweetId};
+        `;
+
+        const dbReplies = await dbConnectionObject.all(query);
+
+        responseObject.send({
+          replies: dbReplies,
+        });
+      }
     }
   }
 );
@@ -418,38 +421,23 @@ app.delete(
   async (requestObject, responseObject) => {
     //const requestQuery = requestObject.query;
     //const { username } = requestQuery;
-    const { username } = requestObject;
+    const { user_id } = requestObject; // Get the authenticated user's user_id
     const requestParams = requestObject.params;
     const { tweetId } = requestParams;
 
-    const tweetQuery = `SELECT tweet.tweet_id AS tweet_id_user_following
-    FROM user AS u1 INNER JOIN follower as f ON f.follower_user_id=u1.user_id INNER JOIN 
-    user AS u2 ON u2.user_id=f.following_user_id INNER JOIN tweet ON tweet.user_id=u2.user_id 
-    WHERE u1.username='${username}';`;
-    const dbResponse1 = await dbConnectionObject.all(tweetQuery);
+    // Check if the tweet belongs to the authenticated user
+    const ownershipQuery = `SELECT user_id FROM tweet WHERE tweet_id=${tweetId}`;
+    const dbResponse = await dbConnectionObject.get(ownershipQuery);
 
-    /*
-    if username=JoeBiden
-    [
-    {"tweet_id_user_following":1},
-    {"tweet_id_user_following":2},
-    {"tweet_id_user_following":7},
-    {"tweet_id_user_following":8}
-     ]
-    */
-    console.log(typeof tweetId); //string
-    console.log(dbResponse1);
-    const tweet_id_user_followingArray = dbResponse1.map((eachObject) => {
-      return eachObject.tweet_id_user_following;
-    });
-    console.log(tweet_id_user_followingArray); //[ 1, 2, 7, 8 ] if username=JoeBiden
-
-    if (!tweet_id_user_followingArray.includes(parseInt(tweetId))) {
+    if (!dbResponse) {
+      responseObject.status(404);
+      responseObject.send("Invalid Request");
+    } else if (dbResponse.user_id !== user_id) {
       responseObject.status(401);
       responseObject.send("Invalid Request");
     } else {
-      const query = `DELETE FROM tweet WHERE tweet_id=${tweetId}`;
-      await dbConnectionObject.run(query);
+      const deleteQuery = `DELETE FROM tweet WHERE tweet_id=${tweetId}`;
+      await dbConnectionObject.run(deleteQuery);
       responseObject.send("Tweet Removed");
     }
   }
