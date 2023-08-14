@@ -300,14 +300,14 @@ app.get(
   authenticateJwtToken,
   async (requestObject, responseObject) => {
     const requestQuery = requestObject.query;
-    const { username } = requestQuery;
+    const { name } = requestQuery;
     const requestParams = requestObject.params;
     const { tweetId } = requestParams;
     console.log(tweetId); //string
     const tweetQuery = `SELECT tweet.tweet_id AS tweet_id_user_following
     FROM user AS u1 INNER JOIN follower as f ON f.follower_user_id=u1.user_id INNER JOIN 
     user AS u2 ON u2.user_id=f.following_user_id INNER JOIN tweet ON tweet.user_id=u2.user_id 
-    WHERE u1.username='${username}';`;
+    WHERE u1.name='${name}';`;
     const dbResponse1 = await dbConnectionObject.all(tweetQuery);
     /*
     if username=JoeBiden
@@ -328,7 +328,7 @@ app.get(
       responseObject.status(401);
       responseObject.send("Invalid Request");
     } else {
-      const query = `SELECT DISTINCT u1.username AS name,r.reply AS reply FROM 
+      const query = `SELECT DISTINCT u1.name AS name,r.reply AS reply FROM 
     tweet AS t LEFT JOIN like AS l ON t.tweet_id = l.tweet_id LEFT JOIN 
     reply AS r ON t.tweet_id = r.tweet_id LEFT JOIN user AS u1 ON u1.user_id=r.user_id 
     WHERE t.tweet_id = ${tweetId};`;
