@@ -39,6 +39,14 @@ CREATE TABLE like (
 
 sqlite> .tables
 follower  like      reply     tweet     user    
+
+CREATE TABLE user (
+            user_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            username TEXT,
+            password TEXT,
+            gender TEXT
+          );
 sqlite> SELECT * FROM user;
 1|Narendra Modi|narendramodi|$2b$10$F/fLVmOjBnj0cj1y0tCS3uTJS6LCtLk1TaM5WqCVYC7ikMlIqY0re|male
 2|Joe Biden|JoeBiden|$2b$10$2are6Ba69oi/Cai4aT/VM.t7AO7TsQx/.Ogz.7XG4qjuMil0v80aq|male

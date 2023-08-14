@@ -1,8 +1,19 @@
+/*
+Programming Language: JavaScript
+
+Server-side Framework: Node.js with Express.js
+
+Database: SQLite (as mentioned in the provided database file twitterClone.db)
+
+Authentication: JSON Web Tokens (JWT) for user authentication
+
+*/
+
 const express = require("express");
 const path = require("path");
 const { open } = require("sqlite");
 const sqlite3 = require("sqlite3");
-const { format, addDays, differenceInDays, parse } = require("date-fns");
+//const { format } = require("date-fns");
 const app = express();
 app.use(express.json());
 const jwt = require("jsonwebtoken");
@@ -68,7 +79,15 @@ app.post("/login/", async (requestObject, responseObject) => {
       responseObject.status(400);
       responseObject.send("Invalid password");
     } else {
-      const payload = { username: dbResponse.username };
+      const query = `SELECT * FROM user WHERE username='${username}';`;
+      const dbRes = await dbConnectionObject.all(query);
+      console.log(dbRes);
+
+      const payload = {
+        username: dbResponse.username,
+        name: dbResponse.name,
+        user_id: dbResponse.user_id,
+      };
       const jwtCreatedToken = await jwt.sign(payload, "MY_SECRET_TOKEN_STRING");
       responseObject.send({
         jwtToken: jwtCreatedToken,
@@ -119,16 +138,16 @@ const authenticateJwtToken = (requestObject, responseObject, next) => {
     responseObject.status(401);
     responseObject.send("Invalid JWT Token");
   } else {
-    jwt.verify(tokenValue, "MY_SECRET_TOKEN_STRING", (error, payload) => {
+    jwt.verify(tokenValue, "MY_SECRET_TOKEN_STRING", async (error, payload) => {
       if (error) {
         responseObject.status(401);
         responseObject.send("Invalid JWT Token");
       } else {
         console.log(payload);
-        /*
-console.log(payload);
-{ username: 'JoeBiden', iat: 1691818917 }
-*/
+
+        requestObject.username = payload.username;
+        requestObject.user_id = payload.user_id;
+        requestObject.name = payload.name;
         next();
       }
     });
@@ -141,9 +160,9 @@ app.get(
   authenticateJwtToken,
   async (requestObject, responseObject) => {
     console.log("authentication completed successfully");
-    const requestQuery = requestObject.query;
+    //const requestQuery = requestObject.query;
 
-    const { username } = requestQuery;
+    const { username } = requestObject;
 
     const tweetQuery = `SELECT u2.username AS username,tweet,date_time AS dateTime
     FROM user AS u1 INNER JOIN follower as f ON f.follower_user_id=u1.user_id INNER JOIN 
@@ -165,8 +184,9 @@ app.get(
   "/user/following/",
   authenticateJwtToken,
   async (requestObject, responseObject) => {
-    const requestQuery = requestObject.query;
-    const { username } = requestQuery;
+    //const requestQuery = requestObject.query;
+    //const { username } = requestQuery;
+    const { username } = requestObject;
     const tweetQuery = `SELECT distinct(u2.name) AS name
     FROM user AS u1 INNER JOIN follower as f ON f.follower_user_id=u1.user_id INNER JOIN 
     user AS u2 ON u2.user_id=f.following_user_id INNER JOIN tweet ON tweet.user_id=u2.user_id 
@@ -184,8 +204,9 @@ app.get(
   "/user/followers/",
   authenticateJwtToken,
   async (requestObject, responseObject) => {
-    const requestQuery = requestObject.query;
-    const { username } = requestQuery;
+    //const requestQuery = requestObject.query;
+    //const { username } = requestQuery;
+    const { username } = requestObject;
     const tweetQuery = `SELECT u2.name AS name FROM user AS u1  INNER JOIN follower
     AS f1 ON u1.user_id=f1.following_user_id INNER JOIN user AS u2 
     ON u2.user_id=f1.follower_user_id WHERE u1.username='${username}';`;
@@ -202,8 +223,9 @@ app.get(
   "/tweets/:tweetId/",
   authenticateJwtToken,
   async (requestObject, responseObject) => {
-    const requestQuery = requestObject.query;
-    const { username } = requestQuery;
+    //const requestQuery = requestObject.query;
+    //const { username } = requestQuery;
+    const { username } = requestObject;
     const requestParams = requestObject.params;
     const { tweetId } = requestParams;
     console.log(tweetId); //string
@@ -248,8 +270,9 @@ app.get(
   "/tweets/:tweetId/likes/",
   authenticateJwtToken,
   async (requestObject, responseObject) => {
-    const requestQuery = requestObject.query;
-    const { username } = requestQuery;
+    //const requestQuery = requestObject.query;
+    //const { username } = requestQuery;
+    const { username } = requestObject;
     const requestParams = requestObject.params;
     const { tweetId } = requestParams;
     console.log(tweetId); //string
@@ -299,8 +322,11 @@ app.get(
   "/tweets/:tweetId/replies/",
   authenticateJwtToken,
   async (requestObject, responseObject) => {
-    const requestQuery = requestObject.query;
-    const { name } = requestQuery;
+    //const requestQuery = requestObject.query;
+    //const { name } = requestQuery;
+    const { username, name } = requestObject;
+
+    console.log(name);
     const requestParams = requestObject.params;
     const { tweetId } = requestParams;
     console.log(tweetId); //string
@@ -348,8 +374,9 @@ app.get(
   "/user/tweets/",
   authenticateJwtToken,
   async (requestObject, responseObject) => {
-    const requestQuery = requestObject.query;
-    const { username } = requestQuery;
+    //const requestQuery = requestObject.query;
+    //const { username } = requestQuery;
+    const { username } = requestObject;
     const query = `SELECT t.tweet AS tweet,COUNT(DISTINCT(l.like_id)) AS likes,COUNT(DISTINCT(r.reply_id)) AS replies,t.date_time AS dateTime 
   FROM tweet AS t LEFT JOIN like AS l ON t.tweet_id=l.tweet_id LEFT JOIN reply AS r ON r.tweet_id=t.tweet_id JOIN user AS u ON t.user_id=u.user_id 
   WHERE u.username='${username}' GROUP BY t.tweet_id;`;
@@ -359,41 +386,48 @@ app.get(
 );
 
 //section10 API 10:
-app.post("/user/tweets/", async (requestObject, responseObject) => {
-  const requestQuery = requestObject.query;
-  const { user_id } = requestQuery;
-  const requestBody = requestObject.body;
-  const { tweet } = requestBody;
-  console.log(user_id);
-  console.log(requestBody);
-  const currentDate = new Date();
+app.post(
+  "/user/tweets/",
+  authenticateJwtToken,
+  async (requestObject, responseObject) => {
+    //const requestQuery = requestObject.query;
+    //const { user_id } = requestQuery;
+    const requestBody = requestObject.body;
+    const { tweet } = requestBody;
+    const { username, user_id } = requestObject;
+    console.log(user_id);
+    console.log(requestBody);
+    //const currentDate = new Date();
 
-  console.log(currentDate);
-  const formattedDate = format(currentDate, "yyyy-MM-dd HH:mm:ss");
-  console.log(formattedDate);
+    //console.log(currentDate);
+    //const formattedDate = format(currentDate, "yyyy-MM-dd HH:mm:ss");
+    //console.log(formattedDate);
 
-  const createTweetQuery = `INSERT INTO tweet (tweet, user_id, date_time)
-VALUES ('${tweet}',${user_id} , '${formattedDate}');
+    const createTweetQuery = `INSERT INTO tweet (tweet, user_id)
+VALUES ('${tweet}',${user_id});
 `;
-  await dbConnectionObject.run(createTweetQuery);
-  responseObject.send("Created a Tweet");
-});
+    await dbConnectionObject.run(createTweetQuery);
+    responseObject.send("Created a Tweet");
+  }
+);
 
 //section11 API 11:
 app.delete(
   "/tweets/:tweetId/",
   authenticateJwtToken,
   async (requestObject, responseObject) => {
-    const requestQuery = requestObject.query;
-    const { username } = requestQuery;
+    //const requestQuery = requestObject.query;
+    //const { username } = requestQuery;
+    const { username } = requestObject;
     const requestParams = requestObject.params;
     const { tweetId } = requestParams;
-    console.log(tweetId); //string
+
     const tweetQuery = `SELECT tweet.tweet_id AS tweet_id_user_following
     FROM user AS u1 INNER JOIN follower as f ON f.follower_user_id=u1.user_id INNER JOIN 
     user AS u2 ON u2.user_id=f.following_user_id INNER JOIN tweet ON tweet.user_id=u2.user_id 
     WHERE u1.username='${username}';`;
     const dbResponse1 = await dbConnectionObject.all(tweetQuery);
+
     /*
     if username=JoeBiden
     [
@@ -403,7 +437,8 @@ app.delete(
     {"tweet_id_user_following":8}
      ]
     */
-
+    console.log(typeof tweetId); //string
+    console.log(dbResponse1);
     const tweet_id_user_followingArray = dbResponse1.map((eachObject) => {
       return eachObject.tweet_id_user_following;
     });
