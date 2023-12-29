@@ -1,3 +1,58 @@
+## How to Run the Application
+
+Follow these steps to run the to-do list web application on your local machine:
+
+### Step 1: Clone the Repository
+First, clone the repository to your local machine in VS Code using Git:
+```bash
+git clone <repository_url>
+```
+
+Next, install the back-end dependencies and start the application:
+```bash
+npm install
+```
+```bash
+nodemon app.js
+```
+
+
+## Database Interaction
+To manage the SQLite database used in this project, you can use the SQLite command-line tool. Below are some useful commands to interact with the database:
+
+### Open SQLite Command-Line Tool
+To open the SQLite command-line tool, navigate to the `server` directory and run the following command:
+```bash
+sqlite3 twitterClone.db
+```
+
+**View Tables in the Database**
+To view the list of tables in the database, use the following command within the SQLite command-line tool:
+```sql
+.tables
+```
+
+**Retrieve All Data in the "tasks" Table**
+To retrieve all data from the tasks table, execute the following SQL query:
+```sql
+SELECT * FROM table_name;
+```
+
+**View Table Schema**
+To view the schema of the tasks table, including the column details, use the following command:
+```sql
+PRAGMA table_info(table_name);
+```
+
+**Exit SQLite Command-Line Tool**
+To exit from the SQLite command-line tool, simply enter the following command:
+```sql
+.exit
+```
+
+
+
+
 
 
 
